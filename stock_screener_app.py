@@ -98,18 +98,40 @@ try:
 except ImportError:
     USE_CHINA_A_STOCK = False
 
+# 导入智能股票筛选器（最优）
+try:
+    from smart_stock_screener import get_smart_screened_stocks
+    USE_SMART_SCREENER = True
+except ImportError:
+    USE_SMART_SCREENER = False
+
 def get_real_stock_data(screener_type: str = "default", use_real_data: bool = True) -> pd.DataFrame:
     """获取真实股票数据 - 多API集成版本"""
 
     # 显示调试信息
-    st.info(f"🔍 调试信息: use_real_data={use_real_data}, USE_CHINA_A_STOCK={USE_CHINA_A_STOCK}, USE_REAL_TIME_API={USE_REAL_TIME_API}")
+    st.info(f"🔍 调试信息: screener_type={screener_type}, use_real_data={use_real_data}, USE_SMART_SCREENER={USE_SMART_SCREENER}")
 
     # 如果需要实时数据
     if use_real_data:
-        # 1. 优先使用中国A股数据获取器
+        # 1. 优先使用智能筛选器（根据筛选器类型返回不同结果）
+        if USE_SMART_SCREENER:
+            try:
+                st.info(f"🧠 正在使用智能筛选器: {SCREENER_CONFIGS.get(screener_type, {}).get('name', screener_type)}")
+                smart_data = get_smart_screened_stocks(screener_type, num_stocks=30, use_real_data=True)
+                if not smart_data.empty:
+                    st.success(f"✅ 智能筛选成功: {len(smart_data)} 只股票")
+                    st.session_state['data_source'] = f"智能A股筛选器-{screener_type}"
+                    st.session_state['update_time'] = datetime.now().strftime("%H:%M:%S")
+                    return smart_data
+                else:
+                    st.warning("⚠️ 智能筛选返回空数据，尝试基础方法...")
+            except Exception as e:
+                st.warning(f"⚠️ 智能筛选失败: {e}")
+
+        # 2. 备用：使用中国A股数据获取器（不区分筛选器类型）
         if USE_CHINA_A_STOCK:
             try:
-                st.info("🇨🇳 正在使用中国A股实时数据获取器...")
+                st.info("🇨🇳 正在使用基础A股数据获取器...")
                 china_data = get_china_a_stock_data(num_stocks=30, use_real_data=True)
                 if not china_data.empty:
                     st.success(f"✅ A股数据获取成功: {len(china_data)} 只股票")
@@ -151,8 +173,8 @@ def get_real_stock_data(screener_type: str = "default", use_real_data: bool = Tr
             except Exception as e:
                 st.error(f"❌ 简化实时数据获取失败: {e}")
 
-        # 4. 如果都失败了，显示错误信息
-        if not USE_CHINA_A_STOCK and not USE_REAL_TIME_API and not USE_SIMPLE_REAL_DATA:
+        # 5. 如果都失败了，显示错误信息
+        if not USE_SMART_SCREENER and not USE_CHINA_A_STOCK and not USE_REAL_TIME_API and not USE_SIMPLE_REAL_DATA:
             st.error("❌ 所有实时数据获取器都未加载，请检查文件")
 
     # 使用优化的数据获取器（如果可用）
