@@ -128,8 +128,8 @@ def main():
         with col1:
             st.markdown("""
             **📞 联系我们**
-            - GitHub: [TradingAgents-CN](https://github.com/yourusername/TradingAgents-CN)
-            - Email: support@tradingagents.cn
+            - 微信: jyzhao77
+            - Email: 577745211@qq.com
             """)
         
         with col2:

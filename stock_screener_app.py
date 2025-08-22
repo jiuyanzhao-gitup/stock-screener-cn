@@ -70,9 +70,43 @@ SCREENER_CONFIGS = {
     }
 }
 
-def get_real_stock_data(screener_type: str = "default", use_real_data: bool = True) -> pd.DataFrame:
-    """获取真实股票数据"""
+# 导入优化的数据获取器
+try:
+    from optimized_data_fetcher import get_optimized_stock_data
+    USE_OPTIMIZED_FETCHER = True
+except ImportError:
+    USE_OPTIMIZED_FETCHER = False
 
+# 导入实时API数据获取器
+try:
+    from real_time_api_fetcher import get_real_time_data
+    USE_REAL_TIME_API = True
+except ImportError:
+    USE_REAL_TIME_API = False
+
+def get_real_stock_data(screener_type: str = "default", use_real_data: bool = True) -> pd.DataFrame:
+    """获取真实股票数据 - 多API集成版本"""
+
+    # 优先使用实时API数据获取器
+    if use_real_data and USE_REAL_TIME_API:
+        try:
+            st.info("🌐 正在使用实时API获取数据...")
+            real_data = get_real_time_data(num_stocks=30)
+            if not real_data.empty:
+                st.session_state['data_source'] = "实时API数据"
+                st.session_state['update_time'] = datetime.now().strftime("%H:%M:%S")
+                return real_data
+        except Exception as e:
+            st.warning(f"⚠️ 实时API获取失败: {e}")
+
+    # 使用优化的数据获取器（如果可用）
+    if USE_OPTIMIZED_FETCHER:
+        try:
+            return get_optimized_stock_data(screener_type, use_real_data, num_stocks=50)
+        except Exception as e:
+            st.warning(f"⚠️ 优化数据获取器失败: {e}")
+
+    # 回退到原始方法
     if not use_real_data:
         return generate_mock_stock_data(screener_type)
 
@@ -378,18 +412,39 @@ def run_screener(screener_key: str, config: dict):
         progress_bar = st.progress(0)
         status_text = st.empty()
 
-        # 步骤1: 获取实时股票数据
-        status_text.text("📡 获取A股实时行情数据...")
-        progress_bar.progress(20)
+        # 步骤1: 获取股票数据（优化版本）
+        status_text.text("📡 正在获取股票数据...")
+        progress_bar.progress(10)
 
-        # 获取真实数据
-        results = get_real_stock_data(screener_key, use_real_data=True)
+        # 添加数据获取选项
+        data_source_option = st.sidebar.selectbox(
+            "📊 数据源选择",
+            ["快速模拟数据", "尝试真实数据"],
+            index=0,
+            help="快速模拟数据：立即显示结果\n真实数据：可能较慢但更准确"
+        )
 
-        if results.empty:
-            status_text.text("⚠️ 实时数据获取失败，使用模拟数据...")
-            progress_bar.progress(40)
+        use_real = (data_source_option == "尝试真实数据")
+
+        try:
+            # 获取数据
+            status_text.text(f"🔄 {'获取真实数据' if use_real else '生成模拟数据'}...")
+            progress_bar.progress(30)
+
+            results = get_real_stock_data(screener_key, use_real_data=use_real)
+
+            if results.empty:
+                status_text.text("⚠️ 数据获取失败，生成备用数据...")
+                progress_bar.progress(50)
+                results = get_real_stock_data(screener_key, use_real_data=False)
+            else:
+                progress_bar.progress(70)
+                status_text.text(f"✅ 成功获取 {len(results)} 只股票数据")
+
+        except Exception as e:
+            st.error(f"❌ 数据获取错误: {e}")
+            status_text.text("🔄 使用备用数据...")
             results = get_real_stock_data(screener_key, use_real_data=False)
-        else:
             progress_bar.progress(60)
 
         # 步骤2: 应用筛选条件
