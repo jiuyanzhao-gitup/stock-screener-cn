@@ -84,20 +84,54 @@ try:
 except ImportError:
     USE_REAL_TIME_API = False
 
+# 导入简化的实时数据获取器（备用）
+try:
+    from simple_real_data import get_simple_real_data, test_real_data
+    USE_SIMPLE_REAL_DATA = True
+except ImportError:
+    USE_SIMPLE_REAL_DATA = False
+
 def get_real_stock_data(screener_type: str = "default", use_real_data: bool = True) -> pd.DataFrame:
     """获取真实股票数据 - 多API集成版本"""
 
-    # 优先使用实时API数据获取器
-    if use_real_data and USE_REAL_TIME_API:
-        try:
-            st.info("🌐 正在使用实时API获取数据...")
-            real_data = get_real_time_data(num_stocks=30)
-            if not real_data.empty:
-                st.session_state['data_source'] = "实时API数据"
-                st.session_state['update_time'] = datetime.now().strftime("%H:%M:%S")
-                return real_data
-        except Exception as e:
-            st.warning(f"⚠️ 实时API获取失败: {e}")
+    # 显示调试信息
+    st.info(f"🔍 调试信息: use_real_data={use_real_data}, USE_REAL_TIME_API={USE_REAL_TIME_API}, USE_SIMPLE_REAL_DATA={USE_SIMPLE_REAL_DATA}")
+
+    # 如果需要实时数据
+    if use_real_data:
+        # 1. 优先使用复杂的实时API数据获取器
+        if USE_REAL_TIME_API:
+            try:
+                st.info("🌐 正在使用多API实时数据获取器...")
+                real_data = get_real_time_data(num_stocks=30)
+                if not real_data.empty:
+                    st.success(f"✅ 多API获取成功: {len(real_data)} 只股票")
+                    st.session_state['data_source'] = "多API实时数据"
+                    st.session_state['update_time'] = datetime.now().strftime("%H:%M:%S")
+                    return real_data
+                else:
+                    st.warning("⚠️ 多API返回空数据，尝试简化方法...")
+            except Exception as e:
+                st.warning(f"⚠️ 多API获取失败: {e}")
+
+        # 2. 使用简化的实时数据获取器
+        if USE_SIMPLE_REAL_DATA:
+            try:
+                st.info("📡 正在使用简化实时数据获取器...")
+                simple_data = get_simple_real_data(num_stocks=30)
+                if not simple_data.empty:
+                    st.success(f"✅ 简化方法获取成功: {len(simple_data)} 只股票")
+                    st.session_state['data_source'] = "Yahoo Finance实时数据"
+                    st.session_state['update_time'] = datetime.now().strftime("%H:%M:%S")
+                    return simple_data
+                else:
+                    st.warning("⚠️ 简化方法也返回空数据")
+            except Exception as e:
+                st.error(f"❌ 简化实时数据获取失败: {e}")
+
+        # 3. 如果都失败了，显示错误信息
+        if not USE_REAL_TIME_API and not USE_SIMPLE_REAL_DATA:
+            st.error("❌ 所有实时数据获取器都未加载，请检查文件")
 
     # 使用优化的数据获取器（如果可用）
     if USE_OPTIMIZED_FETCHER:
@@ -416,15 +450,15 @@ def run_screener(screener_key: str, config: dict):
         status_text.text("📡 正在获取股票数据...")
         progress_bar.progress(10)
 
-        # 添加数据获取选项
+        # 添加数据获取选项 - 默认使用真实数据
         data_source_option = st.sidebar.selectbox(
             "📊 数据源选择",
-            ["快速模拟数据", "尝试真实数据"],
-            index=0,
-            help="快速模拟数据：立即显示结果\n真实数据：可能较慢但更准确"
+            ["🌐 实时股票数据", "⚡ 快速模拟数据"],
+            index=0,  # 默认选择实时数据
+            help="实时股票数据：获取真实市场数据\n快速模拟数据：立即显示模拟结果"
         )
 
-        use_real = (data_source_option == "尝试真实数据")
+        use_real = (data_source_option == "🌐 实时股票数据")
 
         try:
             # 获取数据
