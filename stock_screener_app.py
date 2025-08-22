@@ -91,30 +91,52 @@ try:
 except ImportError:
     USE_SIMPLE_REAL_DATA = False
 
+# 导入中国A股数据获取器（主要）
+try:
+    from china_a_stock_fetcher import get_china_a_stock_data
+    USE_CHINA_A_STOCK = True
+except ImportError:
+    USE_CHINA_A_STOCK = False
+
 def get_real_stock_data(screener_type: str = "default", use_real_data: bool = True) -> pd.DataFrame:
     """获取真实股票数据 - 多API集成版本"""
 
     # 显示调试信息
-    st.info(f"🔍 调试信息: use_real_data={use_real_data}, USE_REAL_TIME_API={USE_REAL_TIME_API}, USE_SIMPLE_REAL_DATA={USE_SIMPLE_REAL_DATA}")
+    st.info(f"🔍 调试信息: use_real_data={use_real_data}, USE_CHINA_A_STOCK={USE_CHINA_A_STOCK}, USE_REAL_TIME_API={USE_REAL_TIME_API}")
 
     # 如果需要实时数据
     if use_real_data:
-        # 1. 优先使用复杂的实时API数据获取器
+        # 1. 优先使用中国A股数据获取器
+        if USE_CHINA_A_STOCK:
+            try:
+                st.info("🇨🇳 正在使用中国A股实时数据获取器...")
+                china_data = get_china_a_stock_data(num_stocks=30, use_real_data=True)
+                if not china_data.empty:
+                    st.success(f"✅ A股数据获取成功: {len(china_data)} 只股票")
+                    st.session_state['data_source'] = "中国A股实时数据"
+                    st.session_state['update_time'] = datetime.now().strftime("%H:%M:%S")
+                    return china_data
+                else:
+                    st.warning("⚠️ A股数据获取返回空数据，尝试其他方法...")
+            except Exception as e:
+                st.warning(f"⚠️ A股数据获取失败: {e}")
+
+        # 2. 备用：使用多API实时数据获取器（美股）
         if USE_REAL_TIME_API:
             try:
-                st.info("🌐 正在使用多API实时数据获取器...")
+                st.info("🌐 正在使用多API实时数据获取器（美股）...")
                 real_data = get_real_time_data(num_stocks=30)
                 if not real_data.empty:
-                    st.success(f"✅ 多API获取成功: {len(real_data)} 只股票")
-                    st.session_state['data_source'] = "多API实时数据"
+                    st.success(f"✅ 美股数据获取成功: {len(real_data)} 只股票")
+                    st.session_state['data_source'] = "美股实时数据"
                     st.session_state['update_time'] = datetime.now().strftime("%H:%M:%S")
                     return real_data
                 else:
-                    st.warning("⚠️ 多API返回空数据，尝试简化方法...")
+                    st.warning("⚠️ 美股数据返回空数据，尝试简化方法...")
             except Exception as e:
-                st.warning(f"⚠️ 多API获取失败: {e}")
+                st.warning(f"⚠️ 美股数据获取失败: {e}")
 
-        # 2. 使用简化的实时数据获取器
+        # 3. 最后备用：使用简化的实时数据获取器
         if USE_SIMPLE_REAL_DATA:
             try:
                 st.info("📡 正在使用简化实时数据获取器...")
@@ -129,8 +151,8 @@ def get_real_stock_data(screener_type: str = "default", use_real_data: bool = Tr
             except Exception as e:
                 st.error(f"❌ 简化实时数据获取失败: {e}")
 
-        # 3. 如果都失败了，显示错误信息
-        if not USE_REAL_TIME_API and not USE_SIMPLE_REAL_DATA:
+        # 4. 如果都失败了，显示错误信息
+        if not USE_CHINA_A_STOCK and not USE_REAL_TIME_API and not USE_SIMPLE_REAL_DATA:
             st.error("❌ 所有实时数据获取器都未加载，请检查文件")
 
     # 使用优化的数据获取器（如果可用）
