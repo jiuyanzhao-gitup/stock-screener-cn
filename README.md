@@ -1,91 +1,69 @@
-# 🔍 智能股票筛选器
+# 🧠 智能股票筛选器 - 专业版
 
-基于Streamlit的A股智能筛选和分析平台
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://your-app-name.streamlit.app)
 
-## ✨ 功能特色
+## 🎯 项目简介
 
-- 🎯 **多维度筛选**: 支持动量突破、价值成长、稳健分红等策略
-- 📊 **可视化分析**: 丰富的图表展示和数据分析
-- 🤖 **AI分析联动**: 集成AI深度分析功能
-- 📱 **响应式设计**: 支持PC和移动端访问
-- 🔄 **实时数据**: 多源数据获取，确保数据准确性
+基于GitHub优秀项目研究开发的智能股票筛选器，专门针对中国A股市场设计，提供12种不同的筛选策略，帮助投资者发现投资机会。
 
-## 🚀 快速开始
+## ✨ 核心特性
 
-### 在线体验
-访问我们的在线演示：[股票筛选器](https://your-app-url.streamlit.app)
+### 🔍 常规筛选器 (6个)
+- 🚀 **动量突破筛选器** - 寻找突破上涨的强势股票
+- 💎 **价值成长筛选器** - 寻找低估值高成长的价值股
+- 🏦 **稳健分红筛选器** - 寻找高股息率的稳健股票
+- 🌱 **小盘成长筛选器** - 寻找高成长潜力的小盘股
+- 📈 **技术强势筛选器** - 寻找技术指标强势的股票
+- 🔄 **超跌反弹筛选器** - 寻找超跌后反弹的机会
 
-### 本地运行
+### ⚡ 短线入场机会 (6个)
+- 🚀 **动量突破入场** - 基于Warrior Trading策略
+- 📈 **缺口突破入场** - 基于Gap Trading理论
+- 💪 **相对强度入场** - 基于IBD相对强度排名
+- 🎯 **窄幅整理突破** - 基于Narrow Range策略
+- 🌅 **早盘强势入场** - 基于Opening Range策略
+- 📊 **技术形态突破** - 基于Chart Pattern策略
 
-1. **克隆项目**
-```bash
-git clone https://github.com/yourusername/stock-screener-cn.git
-cd stock-screener-cn
-```
+## 🎨 界面特色
 
-2. **安装依赖**
-```bash
-pip install -r requirements.txt
-```
+- **左侧栏导航** - 所有筛选器清晰可见，无需隐藏
+- **整页详细分析** - 每个筛选器都有专门的分析页面
+- **专业数据可视化** - 多维度图表展示
+- **入场评分系统** - 短线交易专业评分(0-100分)
+- **数据导出功能** - 支持CSV和分析报告导出
 
-3. **启动应用**
-```bash
-streamlit run web_app.py
-```
+## 🚀 在线体验
 
-4. **访问应用**
-打开浏览器访问: http://localhost:8501
+访问 [智能股票筛选器](https://your-app-name.streamlit.app) 立即体验
 
-## 📊 使用指南
+## 📞 联系方式
 
-### 股票筛选
-1. 在左侧选择筛选策略或自定义条件
-2. 查看筛选结果和统计信息
-3. 点击股票查看详细信息
+- **微信**: jyzhao77
+- **Email**: 577745211@qq.com
 
-### AI分析
-1. 在筛选结果中点击"🤖 AI分析"按钮
-2. 选择分析类型（技术面、基本面等）
-3. 查看AI生成的分析报告
-
-## 🛠️ 技术栈
+## 🔧 技术栈
 
 - **前端**: Streamlit
 - **数据处理**: Pandas, NumPy
 - **可视化**: Plotly
-- **数据源**: YFinance, Alpha Vantage等
-- **部署**: Streamlit Cloud, Docker
+- **数据源**: 新浪财经, 腾讯财经
+- **部署**: Streamlit Cloud
 
-## 📦 部署方式
+## 📊 数据说明
 
-### Streamlit Cloud（推荐）
-1. Fork本项目到你的GitHub
-2. 访问 [Streamlit Cloud](https://share.streamlit.io/)
-3. 连接GitHub仓库并部署
+- 支持实时数据和模拟数据两种模式
+- 包含41只主要A股股票
+- 真实的6位数字股票代码
+- 中文股票名称和行业分类
 
-### Docker部署
-```bash
-docker build -t stock-screener .
-docker run -p 8501:8501 stock-screener
-```
+## 🎯 使用方法
 
-### 一键部署
-```bash
-python deploy.py
-```
-
-## 🤝 贡献指南
-
-欢迎提交Issue和Pull Request！
-
-## 📄 许可证
-
-MIT License
-
-## ⚠️ 免责声明
-
-本工具仅供学习和研究使用，不构成投资建议。投资有风险，入市需谨慎。
+1. 从左侧栏选择筛选器
+2. 调整参数设置
+3. 点击"开始筛选"
+4. 查看详细分析结果
+5. 导出数据进行进一步分析
 
 ---
 
-**如果这个项目对你有帮助，请给个⭐️支持一下！**
+**🎉 基于GitHub优秀项目研究，专为中国A股市场设计的智能筛选系统！**

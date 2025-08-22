@@ -24,30 +24,36 @@ header {visibility: hidden;}
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-# 导入并运行主应用
+# 导入并运行增强版主应用
 try:
-    from web_app import main as web_main
-    web_main()
+    from enhanced_ui_app import main as enhanced_main
+    st.success("🎉 加载增强版界面成功！")
+    enhanced_main()
 except ImportError as e:
-    st.error("❌ 无法导入主应用模块")
-    st.write(f"错误详情: {e}")
-    st.write("请确保所有文件都已正确上传")
-    
-    # 提供调试信息
-    st.markdown("---")
-    st.subheader("🔍 调试信息")
-    
-    # 尝试直接导入股票筛选器
+    st.warning("⚠️ 增强版界面加载失败，尝试备用版本...")
+
+    # 备用方案1：web_app
     try:
-        from stock_screener_app import main as screener_main
-        st.success("✅ 直接导入股票筛选器成功")
-        screener_main()
+        from web_app import main as web_main
+        st.info("📱 使用标准版界面")
+        web_main()
     except ImportError as e2:
-        st.error(f"❌ 直接导入也失败: {e2}")
-        
-        # 最后的备用方案
-        st.markdown("### 🚀 备用启动方案")
-        if st.button("启动调试模式"):
+        st.error("❌ 标准版界面也无法加载")
+
+        # 备用方案2：stock_screener_app
+        try:
+            from stock_screener_app import main as screener_main
+            st.info("🔧 使用基础版界面")
+            screener_main()
+        except ImportError as e3:
+            st.error("❌ 所有界面版本都无法加载")
+            st.write(f"增强版错误: {e}")
+            st.write(f"标准版错误: {e2}")
+            st.write(f"基础版错误: {e3}")
+
+            # 最后的备用方案
+            st.markdown("### 🚀 手动启动方案")
+            if st.button("启动调试模式"):
             try:
                 from debug_data import main as debug_main
                 debug_main()

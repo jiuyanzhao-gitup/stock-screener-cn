@@ -47,11 +47,11 @@ class SmartStockScreener:
             "dividend_stable": {
                 "name": "🏦 稳健分红筛选器",
                 "filters": {
-                    "股息率": (3, 8),       # 股息率 > 3%
-                    "ROE": (10, 30),        # ROE > 10%
-                    "市盈率": (5, 20),      # PE 合理
-                    "资产负债率": (20, 60), # 负债率适中
-                    "净利率": (8, 30),      # 净利率 > 8%
+                    "股息率": (2, 8),       # 股息率 > 2%
+                    "ROE": (8, 35),         # ROE > 8%
+                    "市盈率": (3, 25),      # PE 合理
+                    "资产负债率": (15, 70), # 负债率适中
+                    "净利率": (5, 35),      # 净利率 > 5%
                 },
                 "preferred_industries": ["银行", "券商", "消费"],
                 "exclude_industries": ["新能源"],
@@ -89,11 +89,11 @@ class SmartStockScreener:
             "oversold_rebound": {
                 "name": "🔄 超跌反弹筛选器",
                 "filters": {
-                    "RSI": (15, 35),        # RSI < 35 (超卖)
-                    "涨跌幅": (-20, -5),    # 近期跌幅 5%-20%
-                    "成交量比": (1.5, 5),   # 成交量放大
-                    "市净率": (0.5, 2),     # PB 较低
-                    "KDJ_K": (10, 40),      # KDJ 较低
+                    "RSI": (20, 45),        # RSI < 45 (相对超卖)
+                    "涨跌幅": (-15, 0),     # 近期跌幅或小幅上涨
+                    "成交量比": (1.2, 5),   # 成交量放大
+                    "市净率": (0.5, 3),     # PB 较低
+                    "KDJ_K": (10, 50),      # KDJ 较低
                 },
                 "preferred_industries": ["消费", "医药", "白酒"],
                 "exclude_industries": [],
@@ -136,10 +136,10 @@ class SmartStockScreener:
         if logic["exclude_industries"]:
             filtered_df = filtered_df[~filtered_df["行业"].isin(logic["exclude_industries"])]
         
-        # 4. 如果筛选后股票太少，放宽条件
-        if len(filtered_df) < 5:
-            # 放宽筛选条件，重新筛选
-            filtered_df = self.relax_filters(df, logic)
+        # 4. 严格筛选：不放宽条件，确保结果符合标准
+        # 注释掉放宽条件的逻辑，确保筛选结果严格符合标准
+        # if len(filtered_df) < 5:
+        #     filtered_df = self.relax_filters(df, logic)
         
         # 5. 排序
         if logic["sort_by"] in filtered_df.columns:
@@ -200,32 +200,9 @@ class SmartStockScreener:
         if len(screened_data) > num_stocks:
             screened_data = screened_data.head(num_stocks)
         
-        # 4. 如果筛选后数量不足，补充一些相关股票
-        if len(screened_data) < num_stocks and len(base_data) > len(screened_data):
-            remaining_needed = num_stocks - len(screened_data)
-            remaining_stocks = base_data[~base_data.index.isin(screened_data.index)]
-            
-            # 按相关性补充
-            if screener_type in self.screener_logic:
-                logic = self.screener_logic[screener_type]
-                if logic["preferred_industries"]:
-                    # 优先补充偏好行业的股票
-                    preferred_remaining = remaining_stocks[
-                        remaining_stocks["行业"].isin(logic["preferred_industries"])
-                    ]
-                    if not preferred_remaining.empty:
-                        additional_stocks = preferred_remaining.head(remaining_needed)
-                        screened_data = pd.concat([screened_data, additional_stocks], ignore_index=True)
-            
-            # 如果还不够，随机补充
-            if len(screened_data) < num_stocks:
-                still_needed = num_stocks - len(screened_data)
-                remaining_stocks = base_data[~base_data.index.isin(screened_data.index)]
-                if not remaining_stocks.empty:
-                    additional_stocks = remaining_stocks.sample(
-                        min(still_needed, len(remaining_stocks))
-                    )
-                    screened_data = pd.concat([screened_data, additional_stocks], ignore_index=True)
+        # 4. 严格模式：不补充不符合条件的股票
+        # 只返回严格符合筛选条件的股票，即使数量不足也不补充
+        # 这确保了筛选结果的准确性和可信度
         
         # 5. 更新数据源信息
         screened_data = screened_data.copy()
